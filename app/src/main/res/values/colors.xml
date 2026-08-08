@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Arithmetic average of the supplied 803x803 logo: RGB(105, 67, 65). -->
+    <color name="splash_background">#694341</color>
+    <color name="brand_red">#8D1730</color>
+    <color name="white">#FFFFFF</color>
+</resources>
