@@ -68,8 +68,8 @@ public class MainActivity extends ComponentActivity {
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
 
-        getWindow().setStatusBarColor(Color.parseColor("#694341"));
-        getWindow().setNavigationBarColor(Color.parseColor("#694341"));
+        getWindow().setStatusBarColor(Color.parseColor("#BD4B49"));
+        getWindow().setNavigationBarColor(Color.parseColor("#BD4B49"));
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.web_view);
@@ -95,6 +95,12 @@ public class MainActivity extends ComponentActivity {
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
         webView.addJavascriptInterface(new DownloadBridge(this), "BI_SPACE_ANDROID");
+        webView.setVerticalScrollBarEnabled(true);
+        webView.setHorizontalScrollBarEnabled(false);
+        webView.setScrollbarFadingEnabled(false);
+        webView.setNestedScrollingEnabled(true);
+        webView.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
+        webView.requestFocusFromTouch();
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -110,7 +116,7 @@ public class MainActivity extends ComponentActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                injectBlobDownloadSupport();
+                injectWebViewEnhancements();
             }
         });
 
@@ -180,8 +186,15 @@ public class MainActivity extends ComponentActivity {
         return true;
     }
 
-    private void injectBlobDownloadSupport() {
-        String script = "(function(){if(window.__biSpaceBlobReady)return;window.__biSpaceBlobReady=true;" +
+    private void injectWebViewEnhancements() {
+        String script = "(function(){" +
+                "if(!window.__biSpaceScrollReady){window.__biSpaceScrollReady=true;" +
+                "document.documentElement.classList.add('bi-space-webview');document.body.classList.add('bi-space-webview');" +
+                "var style=document.createElement('style');style.id='bi-space-webview-scroll-fix';" +
+                "style.textContent='html.bi-space-webview,body.bi-space-webview{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior-y:auto!important;touch-action:pan-y pinch-zoom!important;-webkit-overflow-scrolling:touch!important}' +" +
+                "'@media(max-width:760px){body.bi-space-webview.stock-page .workspace-card>.table-wrap,body.bi-space-webview.stock-page .history-card>div,body.bi-space-webview.showcase-page .table-wrap{max-height:none!important;overscroll-behavior:auto!important}body.bi-space-webview.stock-page .container,body.bi-space-webview.showcase-page .container{height:auto!important;min-height:100%!important}}';" +
+                "document.head.appendChild(style);}" +
+                "if(window.__biSpaceBlobReady)return;window.__biSpaceBlobReady=true;" +
                 "document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[download]');" +
                 "if(!a||!a.href||a.href.indexOf('blob:')!==0)return;e.preventDefault();" +
                 "fetch(a.href).then(function(r){return r.blob()}).then(function(b){var fr=new FileReader();" +

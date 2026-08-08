@@ -8,12 +8,13 @@ Aplikasi Android WebView untuk membuka:
 
 - Nama aplikasi: **BI-Space**.
 - Logo launcher dan splash memakai logo yang diberikan.
-- Warna splash `#694341`, yaitu warna rata-rata seluruh pixel logo.
+- Warna splash `#BD4B49`, yaitu warna rata-rata seluruh pixel logo baru.
 - Safe area sistem Android: halaman tidak digambar di belakang notch, status bar, atau navigation bar.
 - Mendukung pemilihan satu atau beberapa file dari elemen upload website.
 - Mendukung download HTTP/HTTPS dan download Blob yang dibuat website.
 - Tombol Back Android kembali ke halaman WebView sebelumnya.
 - Link di luar domain aplikasi dibuka pada browser/peramban yang sesuai.
+- Scroll vertikal Stock Card dan Showcase Log diteruskan ke seluruh halaman; tabel tetap dapat digeser horizontal.
 - Hanya menggunakan koneksi HTTPS.
 
 ## Cara membuat APK melalui GitHub

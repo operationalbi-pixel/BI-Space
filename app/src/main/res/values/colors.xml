@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Arithmetic average of the supplied 803x803 logo: RGB(105, 67, 65). -->
-    <color name="splash_background">#694341</color>
+    <!-- Arithmetic average of the supplied 1024x1024 logo: RGB(189, 75, 73). -->
+    <color name="splash_background">#BD4B49</color>
     <color name="brand_red">#8D1730</color>
     <color name="white">#FFFFFF</color>
 </resources>
