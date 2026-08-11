@@ -49,7 +49,8 @@ final class PushRegistration {
             device.put("fcmToken", fcmToken);
             device.put("deviceId", Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID));
             device.put("platform", "ANDROID");
-            device.put("appVersion", BuildConfig.VERSION_NAME);
+            device.put("appVersion", context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), 0).versionName);
             JSONObject request = new JSONObject();
             request.put("requestId", "push-register-" + System.currentTimeMillis());
             request.put("action", "registerPushToken");
