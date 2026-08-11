@@ -6,3 +6,4 @@ app/build/
 *.iml
 *.jks
 *.keystore
+app/google-services.json
