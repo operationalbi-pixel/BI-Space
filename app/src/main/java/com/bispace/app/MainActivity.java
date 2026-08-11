@@ -1,10 +1,12 @@
 package com.bispace.app;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.DownloadManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -15,6 +17,7 @@ import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.MimeTypeMap;
+import android.webkit.PermissionRequest;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -29,6 +32,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.activity.ComponentActivity;
 import androidx.core.splashscreen.SplashScreen;
+import androidx.core.content.ContextCompat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -44,6 +48,7 @@ public class MainActivity extends ComponentActivity {
     private WebView webView;
     private ProgressBar pageProgress;
     private ValueCallback<Uri[]> fileChooserCallback;
+    private PermissionRequest pendingCameraPermissionRequest;
 
     private final ActivityResultLauncher<Intent> fileChooserLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -61,6 +66,23 @@ public class MainActivity extends ComponentActivity {
                 }
                 fileChooserCallback.onReceiveValue(selected);
                 fileChooserCallback = null;
+            });
+
+    private final ActivityResultLauncher<String> cameraPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+                PermissionRequest request = pendingCameraPermissionRequest;
+                pendingCameraPermissionRequest = null;
+                if (request == null) return;
+                if (granted) {
+                    request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+                } else {
+                    request.deny();
+                    Toast.makeText(
+                            MainActivity.this,
+                            "Izin kamera ditolak. Aktifkan melalui Pengaturan > Aplikasi > BI-Space > Izin > Kamera.",
+                            Toast.LENGTH_LONG
+                    ).show();
+                }
             });
 
     @Override
@@ -90,7 +112,7 @@ public class MainActivity extends ComponentActivity {
         settings.setAllowContentAccess(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        settings.setUserAgentString(settings.getUserAgentString() + " BI-Space-Android/1.0");
+        settings.setUserAgentString(settings.getUserAgentString() + " BI-Space-Android/1.2");
 
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
@@ -125,6 +147,18 @@ public class MainActivity extends ComponentActivity {
             public void onProgressChanged(WebView view, int newProgress) {
                 pageProgress.setProgress(newProgress);
                 pageProgress.setVisibility(newProgress >= 100 ? View.GONE : View.VISIBLE);
+            }
+
+            @Override
+            public void onPermissionRequest(PermissionRequest request) {
+                runOnUiThread(() -> handleWebPermissionRequest(request));
+            }
+
+            @Override
+            public void onPermissionRequestCanceled(PermissionRequest request) {
+                runOnUiThread(() -> {
+                    if (pendingCameraPermissionRequest == request) pendingCameraPermissionRequest = null;
+                });
             }
 
             @Override
@@ -163,6 +197,36 @@ public class MainActivity extends ComponentActivity {
                 Toast.makeText(this, "Download gagal dibuka.", Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void handleWebPermissionRequest(PermissionRequest request) {
+        if (request == null || !isTrustedWebOrigin(request.getOrigin()) || !requestsVideoCapture(request)) {
+            if (request != null) request.deny();
+            return;
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+            return;
+        }
+
+        if (pendingCameraPermissionRequest != null) pendingCameraPermissionRequest.deny();
+        pendingCameraPermissionRequest = request;
+        cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+    }
+
+    private boolean requestsVideoCapture(PermissionRequest request) {
+        for (String resource : request.getResources()) {
+            if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource)) return true;
+        }
+        return false;
+    }
+
+    private boolean isTrustedWebOrigin(Uri origin) {
+        if (origin == null) return false;
+        String scheme = origin.getScheme() == null ? "" : origin.getScheme().toLowerCase(Locale.ROOT);
+        String host = origin.getHost() == null ? "" : origin.getHost().toLowerCase(Locale.ROOT);
+        return scheme.equals("https") && host.equals(INTERNAL_HOST);
     }
 
     private String resolveChooserMimeType(String[] acceptTypes) {
@@ -218,6 +282,10 @@ public class MainActivity extends ComponentActivity {
 
     @Override
     protected void onDestroy() {
+        if (pendingCameraPermissionRequest != null) {
+            pendingCameraPermissionRequest.deny();
+            pendingCameraPermissionRequest = null;
+        }
         if (webView != null) {
             webView.removeJavascriptInterface("BI_SPACE_ANDROID");
             webView.destroy();
