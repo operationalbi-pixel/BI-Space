@@ -13,6 +13,28 @@ Aplikasi Android WebView untuk membuka:
 - Mendukung pemilihan satu atau beberapa file dari elemen upload website.
 - Mendukung download HTTP/HTTPS dan download Blob yang dibuat website.
 - Tombol Back Android kembali ke halaman WebView sebelumnya.
+
+## Fitur native
+
+- Kamera Absensi Break dengan izin Android yang aman.
+- Notifikasi bersuara untuk berita terbaru, transfer masuk, dan pengingat Daily.
+- Notification dot/badge dan badge belum dibaca pada ikon lonceng Dashboard.
+- Notification Center berisi pengaturan kategori, suara, dan riwayat maksimal 100 notifikasi.
+- Pemeriksaan background berkala menggunakan sesi login BI-Space yang sama (interval minimum Android sekitar 15 menit).
+- Update aplikasi internal dari GitHub Release, tanpa Play Store.
+
+## Signing permanen dan update
+
+Workflow release membutuhkan GitHub Secrets berikut:
+
+- `ANDROID_KEYSTORE_BASE64`
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEY_PASSWORD`
+
+Gunakan satu signing key yang sama untuk seluruh versi. Kehilangan atau mengganti key membuat APK berikutnya tidak dapat memperbarui aplikasi yang sudah terpasang.
+
+Setelah push ke `main`, workflow akan membangun signed release APK, mengunggah artifact, dan menerbitkan `BI-Space.apk` pada GitHub Release. Aplikasi memeriksa release terbaru dan meminta persetujuan pengguna sebelum download serta pemasangan.
 - Link di luar domain aplikasi dibuka pada browser/peramban yang sesuai.
 - Scroll vertikal Stock Card dan Showcase Log diteruskan ke seluruh halaman; tabel tetap dapat digeser horizontal.
 - Hanya menggunakan koneksi HTTPS.

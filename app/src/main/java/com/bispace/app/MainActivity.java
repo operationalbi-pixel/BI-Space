@@ -41,6 +41,9 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Locale;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 public class MainActivity extends ComponentActivity {
     private static final String HOME_URL = "https://operationalbi-pixel.github.io/form/";
     private static final String INTERNAL_HOST = "operationalbi-pixel.github.io";
@@ -85,6 +88,11 @@ public class MainActivity extends ComponentActivity {
                 }
             });
 
+    private final ActivityResultLauncher<String> notificationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+                if (!granted) Toast.makeText(this, "Notifikasi belum diizinkan. Anda dapat mengaktifkannya dari Pengaturan Android.", Toast.LENGTH_LONG).show();
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
@@ -96,10 +104,12 @@ public class MainActivity extends ComponentActivity {
 
         webView = findViewById(R.id.web_view);
         pageProgress = findViewById(R.id.page_progress);
+        NotificationHelper.createChannels(this);
         configureWebView();
 
-        if (savedInstanceState == null) webView.loadUrl(HOME_URL);
+        if (savedInstanceState == null) webView.loadUrl(getIntent().getStringExtra("open_url") == null ? HOME_URL : getIntent().getStringExtra("open_url"));
         else webView.restoreState(savedInstanceState);
+        AppUpdateManager.check(this, false);
     }
 
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
@@ -258,6 +268,12 @@ public class MainActivity extends ComponentActivity {
                 "style.textContent='html.bi-space-webview,body.bi-space-webview{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior-y:auto!important;touch-action:pan-y pinch-zoom!important;-webkit-overflow-scrolling:touch!important}' +" +
                 "'@media(max-width:760px){body.bi-space-webview.stock-page .workspace-card>.table-wrap,body.bi-space-webview.stock-page .history-card>div,body.bi-space-webview.showcase-page .table-wrap{max-height:none!important;overscroll-behavior:auto!important}body.bi-space-webview.stock-page .container,body.bi-space-webview.showcase-page .container{height:auto!important;min-height:100%!important}}';" +
                 "document.head.appendChild(style);}" +
+                "try{var token=localStorage.getItem('bakerzin_session')||'';var cache=JSON.parse(localStorage.getItem('bakerzin_app_cache')||'null');" +
+                "if(token&&cache){BI_SPACE_ANDROID.syncSession(token,JSON.stringify(cache.user||{}));BI_SPACE_ANDROID.syncNews(JSON.stringify(cache.news||[]));}" +
+                "var host=document.querySelector('.top-user')||document.querySelector('.app-header-inner');" +
+                "if(host&&!document.getElementById('biSpaceNativeBell')){var bell=document.createElement('button');bell.id='biSpaceNativeBell';bell.type='button';bell.title='Notifikasi dan update';" +
+                "bell.style.cssText='position:relative;flex:0 0 38px;width:38px;height:38px;border:1px solid #e5dddf;border-radius:11px;background:#fff;color:#9f172b;font-size:18px;';bell.innerHTML='&#128276;';" +
+                "var unread=Number(BI_SPACE_ANDROID.getUnreadCount()||0);if(unread){var badge=document.createElement('span');badge.id='biSpaceNativeBadge';badge.textContent=unread>99?'99+':String(unread);badge.style.cssText='position:absolute;right:-5px;top:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:10px;background:#c72a43;color:#fff;font:700 9px/18px sans-serif';bell.appendChild(badge);}bell.onclick=function(){BI_SPACE_ANDROID.openNotificationCenter()};host.insertBefore(bell,host.firstChild);}}catch(e){}" +
                 "if(window.__biSpaceBlobReady)return;window.__biSpaceBlobReady=true;" +
                 "document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[download]');" +
                 "if(!a||!a.href||a.href.indexOf('blob:')!==0)return;e.preventDefault();" +
@@ -265,6 +281,31 @@ public class MainActivity extends ComponentActivity {
                 "fr.onloadend=function(){BI_SPACE_ANDROID.saveBase64(String(fr.result||''),a.download||'BI-Space-download')};" +
                 "fr.readAsDataURL(b)}).catch(function(){alert('Download gagal diproses oleh aplikasi.')})},true)})();";
         webView.evaluateJavascript(script, null);
+    }
+
+    void requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (NotificationStore.prefs(this).getBoolean(NotificationStore.KEY_PERMISSION_ASKED, false)) return;
+            NotificationStore.prefs(this).edit().putBoolean(NotificationStore.KEY_PERMISSION_ASKED, true).apply();
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        String url = intent.getStringExtra("open_url");
+        if (url != null && webView != null) webView.loadUrl(url);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (webView != null) {
+            int unread = NotificationStore.unread(this);
+            webView.evaluateJavascript("(function(){var b=document.getElementById('biSpaceNativeBadge');var n=" + unread + ";if(!n&&b)b.remove();else if(b)b.textContent=n>99?'99+':String(n)})()", null);
+        }
     }
 
     @Override
@@ -295,10 +336,53 @@ public class MainActivity extends ComponentActivity {
 
     public static class DownloadBridge {
         private final Context context;
+        private final MainActivity activity;
 
-        DownloadBridge(Context context) {
-            this.context = context.getApplicationContext();
+        DownloadBridge(MainActivity activity) {
+            this.activity = activity;
+            this.context = activity.getApplicationContext();
         }
+
+        @JavascriptInterface
+        public void syncSession(String token, String userJson) {
+            NotificationStore.saveSession(context, token, userJson);
+            NotificationWorker.schedule(context);
+            activity.runOnUiThread(activity::requestNotificationPermissionIfNeeded);
+        }
+
+        @JavascriptInterface
+        public void syncNews(String newsJson) {
+            try {
+                JSONArray news = new JSONArray(newsJson == null ? "[]" : newsJson);
+                if (!NotificationStore.prefs(context).getBoolean(NotificationStore.KEY_NEWS_SEEDED, false)) {
+                    NotificationStore.seedNews(context, news);
+                    return;
+                }
+                for (int i = news.length() - 1; i >= 0; i--) {
+                    JSONObject source = news.optJSONObject(i);
+                    if (source == null) continue;
+                    JSONObject item = new JSONObject();
+                    item.put("id", "NEWS:" + source.optString("id", ""));
+                    item.put("type", "NEWS");
+                    item.put("title", source.optString("title", "Informasi terbaru"));
+                    item.put("body", source.optString("content", "Ada informasi terbaru di BI-Space."));
+                    item.put("url", source.optString("linkUrl", HOME_URL));
+                    item.put("createdAt", source.optString("publishedAt", ""));
+                    NotificationHelper.post(context, item);
+                }
+            } catch (Exception ignored) {}
+        }
+
+        @JavascriptInterface
+        public int getUnreadCount() { return NotificationStore.unread(context); }
+
+        @JavascriptInterface
+        public void openNotificationCenter() {
+            context.startActivity(new Intent(context, NotificationCenterActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        }
+
+        @JavascriptInterface
+        public void checkForUpdate() { activity.runOnUiThread(() -> AppUpdateManager.check(activity, true)); }
 
         @JavascriptInterface
         public void saveBase64(String dataUrl, String requestedName) {

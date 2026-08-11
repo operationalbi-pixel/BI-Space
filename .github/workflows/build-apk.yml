@@ -4,9 +4,11 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-apk:
@@ -34,11 +36,23 @@ jobs:
         with:
           gradle-version: "8.9"
 
-      - name: Build installable debug APK
-        run: gradle --no-daemon assembleDebug
+      - name: Prepare permanent release signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64" || (echo "ANDROID_KEYSTORE_BASE64 secret is missing" && exit 1)
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/bi-space-release.jks"
+
+      - name: Build signed release APK
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/bi-space-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: gradle --no-daemon assembleRelease
 
       - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk BI-Space.apk
+        run: cp app/build/outputs/apk/release/app-release.apk BI-Space.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -47,3 +61,18 @@ jobs:
           path: BI-Space.apk
           if-no-files-found: error
           retention-days: 30
+
+      - name: Read application version
+        id: version
+        run: |
+          VERSION=$(grep -oP 'versionName\s+"\K[^"]+' app/build.gradle)
+          echo "name=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Publish internal GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.name }}
+          name: BI-Space v${{ steps.version.outputs.name }}
+          files: BI-Space.apk
+          generate_release_notes: true
