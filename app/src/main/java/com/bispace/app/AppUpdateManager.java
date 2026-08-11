@@ -35,7 +35,9 @@ final class AppUpdateManager {
                 JSONObject release = getJson(LATEST_RELEASE);
                 String tag = release.optString("tag_name", "").replaceFirst("^[vV]", "");
                 String apkUrl = findApk(release.optJSONArray("assets"));
-                boolean newer = compareVersions(tag, BuildConfig.VERSION_NAME) > 0;
+                String installedVersion = activity.getPackageManager()
+                        .getPackageInfo(activity.getPackageName(), 0).versionName;
+                boolean newer = compareVersions(tag, installedVersion) > 0;
                 activity.runOnUiThread(() -> {
                     if (newer && !apkUrl.isEmpty()) showUpdateDialog(activity, tag, apkUrl);
                     else if (showUpToDate) Toast.makeText(activity, "BI-Space sudah versi terbaru.", Toast.LENGTH_LONG).show();
