@@ -85,7 +85,7 @@ final class AppUpdateManager {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
         PendingIntent pending = PendingIntent.getActivity(context, 9183, install, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         NotificationCompat.Builder notification = new NotificationCompat.Builder(context, NotificationHelper.CHANNEL_UPDATE)
-                .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setSmallIcon(R.drawable.ic_notification_logo)
                 .setContentTitle("Update BI-Space siap dipasang")
                 .setContentText("Ketuk untuk melanjutkan pemasangan versi terbaru.")
                 .setContentIntent(pending).setAutoCancel(true).setPriority(NotificationCompat.PRIORITY_HIGH);

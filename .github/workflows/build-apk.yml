@@ -43,6 +43,13 @@ jobs:
           test -n "$ANDROID_KEYSTORE_BASE64" || (echo "ANDROID_KEYSTORE_BASE64 secret is missing" && exit 1)
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/bi-space-release.jks"
 
+      - name: Prepare Firebase configuration
+        env:
+          FIREBASE_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          test -n "$FIREBASE_GOOGLE_SERVICES_JSON_BASE64" || (echo "FIREBASE_GOOGLE_SERVICES_JSON_BASE64 secret is missing" && exit 1)
+          echo "$FIREBASE_GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > app/google-services.json
+
       - name: Build signed release APK
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/bi-space-release.jks

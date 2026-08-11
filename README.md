@@ -17,10 +17,11 @@ Aplikasi Android WebView untuk membuka:
 ## Fitur native
 
 - Kamera Absensi Break dengan izin Android yang aman.
-- Notifikasi bersuara untuk berita terbaru, transfer masuk, dan pengingat Daily.
+- Push notification Firebase secara real-time untuk berita terbaru dan transfer masuk.
+- Pemeriksaan berkala tetap aktif sebagai cadangan untuk pengingat Daily dan pemulihan ketika perangkat sempat offline.
+- Ikon kecil notifikasi memakai versi siluet putih logo BI-Space agar tetap jelas pada status bar Android.
 - Notification dot/badge dan badge belum dibaca pada ikon lonceng Dashboard.
 - Notification Center berisi pengaturan kategori, suara, dan riwayat maksimal 100 notifikasi.
-- Pemeriksaan background berkala menggunakan sesi login BI-Space yang sama (interval minimum Android sekitar 15 menit).
 - Update aplikasi internal dari GitHub Release, tanpa Play Store.
 
 ## Signing permanen dan update
@@ -31,6 +32,17 @@ Workflow release membutuhkan GitHub Secrets berikut:
 - `ANDROID_KEYSTORE_PASSWORD`
 - `ANDROID_KEY_ALIAS`
 - `ANDROID_KEY_PASSWORD`
+- `FIREBASE_GOOGLE_SERVICES_JSON_BASE64`
+
+`FIREBASE_GOOGLE_SERVICES_JSON_BASE64` adalah isi file `google-services.json` dari Firebase yang sudah dikonversi ke Base64. File asli tidak boleh disimpan di repository.
+
+Sisi Apps Script juga membutuhkan Script Properties berikut agar dapat mengirim FCM HTTP v1:
+
+- `FCM_PROJECT_ID`
+- `FCM_CLIENT_EMAIL`
+- `FCM_PRIVATE_KEY`
+
+Nilainya berasal dari service account Firebase/Google Cloud yang memiliki izin mengirim pesan FCM. Gunakan private key lengkap; bila ditempel satu baris, pertahankan karakter `\n`. Setelah Apps Script terbaru diterapkan dan pengguna login ke APK versi 1.4.0, perangkat otomatis didaftarkan pada sheet `APP_PUSH_TOKENS`.
 
 Gunakan satu signing key yang sama untuk seluruh versi. Kehilangan atau mengganti key membuat APK berikutnya tidak dapat memperbarui aplikasi yang sudah terpasang.
 

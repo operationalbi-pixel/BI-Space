@@ -16,6 +16,24 @@
         android:theme="@style/Theme.BISpace.Starting"
         android:usesCleartextTraffic="false">
 
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification_logo" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/brand_red" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="bispace_general" />
+
+        <service
+            android:name=".BiSpaceMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name=".NotificationCenterActivity"
             android:exported="false" />

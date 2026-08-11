@@ -51,7 +51,7 @@ final class NotificationHelper {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         String channel = "TRANSFER".equals(type) ? CHANNEL_IMPORTANT : CHANNEL_GENERAL;
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channel)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(R.drawable.ic_notification_logo)
                 .setColor(Color.rgb(159, 23, 43))
                 .setContentTitle(item.optString("title", "BI-Space"))
                 .setContentText(item.optString("body", ""))

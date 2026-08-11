@@ -24,6 +24,7 @@ final class NotificationStore {
     static final String KEY_NEWS_SEEDED = "notification_news_seeded";
     static final String KEY_UPDATE_DOWNLOAD = "update_download_id";
     static final String KEY_PERMISSION_ASKED = "notification_permission_asked";
+    static final String KEY_FCM_TOKEN = "fcm_registration_token";
 
     private NotificationStore() {}
 

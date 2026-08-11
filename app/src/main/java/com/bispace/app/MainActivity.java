@@ -346,6 +346,7 @@ public class MainActivity extends ComponentActivity {
         @JavascriptInterface
         public void syncSession(String token, String userJson) {
             NotificationStore.saveSession(context, token, userJson);
+            PushRegistration.refresh(context);
             NotificationWorker.schedule(context);
             activity.runOnUiThread(activity::requestNotificationPermissionIfNeeded);
         }
