@@ -2,6 +2,8 @@ package com.bispace.app;
 
 import android.graphics.Color;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -49,7 +51,8 @@ public class NotificationCenterActivity extends ComponentActivity {
         close.setOnClickListener(v -> finish());
         heading.addView(close);
         root.addView(heading);
-        addText("Atur notifikasi, suara, riwayat, dan update aplikasi.", 12, false, Color.rgb(117, 109, 112), 4, 18);
+        addText("Atur notifikasi, suara, riwayat, dan update aplikasi.", 12, false, Color.rgb(117, 109, 112), 4, 3);
+        addText(appVersionLabel(), 10, true, Color.rgb(159, 23, 43), 0, 18);
 
         addSectionTitle("Pengaturan");
         addSwitch("Suara notifikasi", NotificationStore.KEY_SOUND, true);
@@ -63,7 +66,7 @@ public class NotificationCenterActivity extends ComponentActivity {
                 .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName())));
         root.addView(androidSettings, margins(8, 4));
 
-        Button update = primaryButton("Periksa Update Aplikasi");
+        Button update = primaryButton("Periksa Update · " + appVersionLabel());
         update.setOnClickListener(v -> AppUpdateManager.check(this, true));
         root.addView(update, margins(0, 14));
 
@@ -114,6 +117,16 @@ public class NotificationCenterActivity extends ComponentActivity {
         control.setChecked(NotificationStore.prefs(this).getBoolean(key, initial));
         control.setOnCheckedChangeListener((CompoundButton button, boolean checked) -> NotificationStore.prefs(this).edit().putBoolean(key, checked).apply());
         root.addView(control, margins(0, 4));
+    }
+
+    private String appVersionLabel() {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            long build = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? info.getLongVersionCode() : info.versionCode;
+            return "Versi " + info.versionName + " · Build " + build;
+        } catch (Exception ignored) {
+            return "Versi aplikasi tidak terbaca";
+        }
     }
 
     private void addSectionTitle(String value) { addText(value, 17, true, Color.rgb(48, 41, 43), 8, 8); }
