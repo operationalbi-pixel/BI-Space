@@ -20,6 +20,7 @@ final class NotificationStore {
     static final String KEY_NEWS = "notification_news";
     static final String KEY_TRANSFER = "notification_transfer";
     static final String KEY_REMINDER = "notification_reminder";
+    static final String KEY_BERITA_ACARA = "notification_berita_acara";
     static final String KEY_LAST_SYNC = "notification_last_sync";
     static final String KEY_NEWS_SEEDED = "notification_news_seeded";
     static final String KEY_UPDATE_DOWNLOAD = "update_download_id";
@@ -42,6 +43,7 @@ final class NotificationStore {
         if ("NEWS".equals(type)) return p.getBoolean(KEY_NEWS, true);
         if ("TRANSFER".equals(type)) return p.getBoolean(KEY_TRANSFER, true);
         if ("REMINDER".equals(type)) return p.getBoolean(KEY_REMINDER, true);
+        if ("BERITA_ACARA".equals(type)) return p.getBoolean(KEY_BERITA_ACARA, true);
         return true;
     }
 
