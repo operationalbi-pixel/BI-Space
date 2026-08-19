@@ -17,9 +17,9 @@ Aplikasi Android WebView untuk membuka:
 ## Fitur native
 
 - Kamera Absensi Break dengan izin Android yang aman.
-- Push notification Firebase secara real-time untuk berita terbaru dan transfer masuk.
+- Push notification Firebase secara real-time untuk berita terbaru, transfer masuk, serta Berita Acara baru, revisi, persetujuan, dan penolakan.
 - Pemeriksaan berkala tetap aktif sebagai cadangan untuk pengingat Daily dan pemulihan ketika perangkat sempat offline.
-- Ikon kecil notifikasi memakai versi siluet putih logo BI-Space agar tetap jelas pada status bar Android.
+- Ikon kecil notifikasi memakai kotak rounded dengan huruf `BI` agar tetap jelas pada status bar Android.
 - Notification dot/badge dan badge belum dibaca pada ikon lonceng Dashboard.
 - Notification Center berisi pengaturan kategori, suara, dan riwayat maksimal 100 notifikasi.
 - Update aplikasi internal dari GitHub Release, tanpa Play Store.
@@ -42,7 +42,7 @@ Sisi Apps Script juga membutuhkan Script Properties berikut agar dapat mengirim 
 - `FCM_CLIENT_EMAIL`
 - `FCM_PRIVATE_KEY`
 
-Nilainya berasal dari service account Firebase/Google Cloud yang memiliki izin mengirim pesan FCM. Gunakan private key lengkap; bila ditempel satu baris, pertahankan karakter `\n`. Setelah Apps Script terbaru diterapkan dan pengguna login ke APK versi 1.4.0, perangkat otomatis didaftarkan pada sheet `APP_PUSH_TOKENS`.
+Nilainya berasal dari service account Firebase/Google Cloud yang memiliki izin mengirim pesan FCM. Gunakan private key lengkap; bila ditempel satu baris, pertahankan karakter `\n`. Setelah Apps Script terbaru diterapkan dan pengguna login ke APK versi 1.5.0, perangkat otomatis didaftarkan pada sheet `APP_PUSH_TOKENS`.
 
 Gunakan satu signing key yang sama untuk seluruh versi. Kehilangan atau mengganti key membuat APK berikutnya tidak dapat memperbarui aplikasi yang sudah terpasang.
 

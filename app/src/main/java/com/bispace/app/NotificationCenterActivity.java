@@ -56,6 +56,7 @@ public class NotificationCenterActivity extends ComponentActivity {
         addSwitch("Informasi dan berita terbaru", NotificationStore.KEY_NEWS, true);
         addSwitch("Transfer barang masuk", NotificationStore.KEY_TRANSFER, true);
         addSwitch("Pengingat pekerjaan Daily", NotificationStore.KEY_REMINDER, true);
+        addSwitch("Berita Acara baru dan perubahan status", NotificationStore.KEY_BERITA_ACARA, true);
 
         Button androidSettings = button("Pengaturan Notifikasi Android");
         androidSettings.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)

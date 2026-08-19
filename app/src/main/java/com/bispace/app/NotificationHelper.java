@@ -29,7 +29,7 @@ final class NotificationHelper {
         general.setDescription("Berita, task Daily, dan aktivitas BI-Space.");
         general.enableVibration(true);
         NotificationChannel important = new NotificationChannel(CHANNEL_IMPORTANT, "Transfer dan aktivitas penting", NotificationManager.IMPORTANCE_HIGH);
-        important.setDescription("Transfer barang dan aktivitas operasional yang memerlukan tindakan.");
+        important.setDescription("Transfer barang, Berita Acara, dan aktivitas operasional yang memerlukan tindakan.");
         important.enableVibration(true);
         NotificationChannel update = new NotificationChannel(CHANNEL_UPDATE, "Update aplikasi", NotificationManager.IMPORTANCE_HIGH);
         update.setDescription("Versi baru BI-Space dan APK yang siap dipasang.");
@@ -49,7 +49,8 @@ final class NotificationHelper {
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pending = PendingIntent.getActivity(context, item.optString("id", "BI").hashCode(), intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        String channel = "TRANSFER".equals(type) ? CHANNEL_IMPORTANT : CHANNEL_GENERAL;
+        boolean importantType = "TRANSFER".equals(type) || "BERITA_ACARA".equals(type);
+        String channel = importantType ? CHANNEL_IMPORTANT : CHANNEL_GENERAL;
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channel)
                 .setSmallIcon(R.drawable.ic_notification_logo)
                 .setColor(Color.rgb(159, 23, 43))
@@ -58,7 +59,7 @@ final class NotificationHelper {
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(item.optString("body", "")))
                 .setContentIntent(pending).setAutoCancel(true)
                 .setNumber(NotificationStore.unread(context))
-                .setPriority("TRANSFER".equals(type) ? NotificationCompat.PRIORITY_HIGH : NotificationCompat.PRIORITY_DEFAULT);
+                .setPriority(importantType ? NotificationCompat.PRIORITY_HIGH : NotificationCompat.PRIORITY_DEFAULT);
         if (!NotificationStore.soundEnabled(context)) builder.setSilent(true);
         ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).notify(item.optString("id", "BI").hashCode(), builder.build());
     }
